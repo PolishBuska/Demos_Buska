@@ -15,7 +15,7 @@ class AbstractRepository(ABC):
 
 
 
-class SQLAlchemyRepository(AbstractRepository,):
+class SQLAlchemyRepository(AbstractRepository):
     model = None
     async def add_one(self,data: dict):
         async with async_sessionmaker as session:

@@ -1,15 +1,19 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, UploadFile, File
 import app.schemas.song_schema as song_schema
-from app.repositories.Songs_repository import SongsRepository
+from app.services import File_service
 
-song = APIRouter(
+router = APIRouter(
     prefix='/songs',
     tags=['songs']
 )
 
 
-@song.get('/song/create')
-async def create_song(song: song_schema.Create_song):
-    song_dict = song.model_dump()
-    song_id = await SongsRepository().add_one(song_dict)
-    return song_id
+@router.post('/song/create')
+async def create_song(title: str,desc:str, file: UploadFile = File(...)):
+    song_manager = File_service.FileService(file = file,
+                                            title = title,
+                                            path="app/static/",
+                                            desc=desc,
+                                            author_id= 1)
+    result = await song_manager.Upload_song()
+    return result

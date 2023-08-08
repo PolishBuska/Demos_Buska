@@ -13,6 +13,8 @@ class Songs(Base):
                       nullable=False)
     author = relationship("User", backref="Songs")
     description: Mapped[str]
+    link: Mapped[str]
+    filename: Mapped[str]
 
     def to_read_model(self) -> SongBase:
         return SongBase(
