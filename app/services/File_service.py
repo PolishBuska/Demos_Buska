@@ -14,8 +14,8 @@ class FileService():
     async def Upload_song(self):
         file_manager = FileRepository(path=self.path, file=self.file)
         file_data = await file_manager.hash_filename()
-        song_manager = SongsRepository
+        db_song_manager = SongsRepository
         song_data = {"title":self.title,"description":self.desc,"filename":file_data.file_name,"link":file_data.link}
         result = FullDataFileSong(**song_data)
-        return await song_manager.add_one(data=result)
+        return await db_song_manager.add_one(data=result)
 

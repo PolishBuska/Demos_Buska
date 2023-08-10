@@ -19,3 +19,9 @@ class SQLAlchemyRepository(BaseAbstractRepository):
             res = await session.execute(query)
             [row[0].to_read_model() for row in res.all()]
             return res.scalar_one()
+
+    async def find_one(self, id: int):
+        async with async_sessionmaker as session:
+            query = select(self.model).where(self.model.id == id).scalar_one()
+            res = await session.execute(query)
+            return res.scalar_one()
