@@ -2,15 +2,13 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from app.schemas.token_paylaod_schema import TokenData
 from fastapi import Depends, status, HTTPException
-from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
-from app.config  import settings
-from app.repositories.SQLAlchemy_repository import SQLAlchemyRepository
-from app.models.user_model import User
+
+from app.repositories.Db_model_definer import UsersRepository
+
 
 
 class UserManagerRepository():
-    oauth2_scheme = None
+    oauth2_scheme = None  # fill these in another layer
     Model = None
     SECRET_KEY = None
     ALGORITHM = None
@@ -45,8 +43,8 @@ class UserManagerRepository():
                                           detail=f'Could not validate credentials',
                                           headers={"WWW-Authenticate": "Bearer"})
         token_verified = await self.verify_access_token(token, credentials_exception)
-        db_manager = SQLAlchemyRepository
-        user = db_manager.find_one(id=token_verified.id)
+        db_manager = UsersRepository()
+        user = await db_manager.find_one(id=token_verified.id)
 
         return user
 

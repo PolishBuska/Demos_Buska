@@ -3,7 +3,7 @@ from app.models.song_model import Songs
 from app.schemas.song_file_schema import FullDataFileSong
 
 from app.repositories.File_repository import FileRepository
-from app.repositories.Songs_repository import SongsRepository
+from app.repositories.Db_model_definer import SongsRepository
 class FileService():
     def __init__(self,file, path, title, desc, author_id):
         self.file = file

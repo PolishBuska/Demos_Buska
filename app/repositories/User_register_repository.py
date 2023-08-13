@@ -2,27 +2,21 @@ from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from starlette import status
 from app.schemas.user_schema import UserCreate
-from passlib.context import CryptContext
-class UserRegistrationManager():
-    def __init__(self, email: str, password: str, nickname: str,role_id: int):
-        self.email = email
-        self.password = password
-        self.nickname = nickname
-        self.role_id = role_id
+from app.repositories.Db_model_definer import UsersRepository
 
-    pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
-    def hash(password: str):
-        return pwd_context.hash(password)
+class UserRegistrationRepository():
+    __pwd_context__ = None
 
-    def verify(plain_password, hashed_password):
-        return pwd_context.verify(plain_password, hashed_password)
+    def __hash_password__(self, password: str):
+        return self.__pwd_context__.hash(password)
 
-    async def create_user(user: UserCreate):
+    async def create_user(self, user: UserCreate):
         try:
-
-            user.password = utils.hash(user.password)
-            return new_user
+            user.password = self.__hash_password__(user.password)
+            db_manager = UsersRepository()
+            await db_manager.add_one(data=user.model_dump())
+            return user.to_read_model()
         except IntegrityError:
             raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,
                             detail="already registered")
