@@ -14,5 +14,10 @@ class UserAuthService(UserManagerRepository):
     ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
     Model = User
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
+
+
+
+
+
 class UserRegService(UserRegistrationRepository):
     __pwd_context__ = CryptContext(schemes=['bcrypt'], deprecated='auto')

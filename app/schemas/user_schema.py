@@ -14,7 +14,7 @@ class UserCreate(BaseModel):
     nickname: Annotated[str, constr(max_length=100)]
     email: EmailStr
     password: Annotated[str, constr(max_length=100)]
-    user_role_id: Annotated[int, Ge(1), Le(2)]
+    role_id: Annotated[int, Ge(1), Le(2)]
 
     def clean(self):
         self.nickname = bleach.clean(self.nickname)

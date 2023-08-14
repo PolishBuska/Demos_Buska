@@ -6,7 +6,7 @@ from app.repositories.Db_model_definer import UsersRepository
 
 
 class UserRegistrationRepository():
-    __pwd_context__ = None
+    __pwd_context__ = None # should be set individually
 
     def __hash_password__(self, password: str):
         return self.__pwd_context__.hash(password)
@@ -15,8 +15,9 @@ class UserRegistrationRepository():
         try:
             user.password = self.__hash_password__(user.password)
             db_manager = UsersRepository()
-            await db_manager.add_one(data=user.model_dump())
-            return user.to_read_model()
-        except IntegrityError:
+            user = await db_manager.add_one(data=user.model_dump())
+            return user
+        except IntegrityError as error:
+            print(error)
             raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,
                             detail="already registered")
