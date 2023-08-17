@@ -8,13 +8,12 @@ from app.db import async_session_maker,get_async_session
 
 class SQLAlchemyRepository(BaseAbstractRepository):
     model = None
-    async def add_one(self, data: dict) -> int:
+    async def add_one(self, data: dict) -> dict:
         async with async_session_maker() as session:
-            print(data)
-            stmt = insert(self.model).values(**data).returning(self.model.id)
+            stmt = insert(self.model).values(**data).returning(self.model)
             res = await session.execute(stmt)
             await session.commit()
-            return res.scalar_one()
+            return res.scalar()
 
     async def find_all(self):
         async with async_session_maker() as session:

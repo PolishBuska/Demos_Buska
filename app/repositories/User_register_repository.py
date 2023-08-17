@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from starlette import status
-from app.schemas.user_schema import UserCreate
+from app.schemas.user_schema import UserCreate, UserOut
 from app.repositories.Db_model_definer import UsersRepository
 
 
@@ -15,9 +15,13 @@ class UserRegistrationRepository():
         try:
             user.password = self.__hash_password__(user.password)
             db_manager = UsersRepository()
-            user = await db_manager.add_one(data=user.model_dump())
-            return user
+            user_result = await db_manager.add_one(data=user.model_dump())
+            return user_result
         except IntegrityError as error:
             print(error)
             raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,
                             detail="already registered")
+        except Exception as error:
+            print(error)
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                            detail="smth went wrong")

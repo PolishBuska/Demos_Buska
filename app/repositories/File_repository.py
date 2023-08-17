@@ -19,8 +19,8 @@ class FileRepository():
                 token_name = secrets.token_hex(15) + "." + extension
                 generated_name = self.path + token_name
                 file_content = await self.file.read()
-                with open(generated_name, "wb") as file:
-                    file.write(file_content)
+                async with open(generated_name, "wb") as file:
+                    await file.write(file_content)
                 return SongFileSchema(link= generated_name, file_name = file_name)
         except FileException:
             print("Invalid format")

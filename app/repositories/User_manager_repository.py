@@ -1,11 +1,14 @@
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
+
+from app.db import async_session_maker
+from app.models.user_model import User
 from app.schemas.token_paylaod_schema import TokenData
 from fastapi import Depends, status, HTTPException
-
+from sqlalchemy import select
 from app.repositories.Db_model_definer import UsersRepository
-
-
+from app.repositories.SQLAlchemy_repository import SQLAlchemyRepository
+from app.repositories.pwd_contex_repository import Pwd_context
 
 class UserManagerRepository():
     oauth2_scheme = None  # fill these in another layer
@@ -37,7 +40,7 @@ class UserManagerRepository():
         return token_data
 
 
-    async def get_current_user(self,token: str = Depends(oauth2_scheme)):
+    async def get_current_user(self, token: str = Depends(oauth2_scheme)):
 
         credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                           detail=f'Could not validate credentials',
@@ -47,4 +50,14 @@ class UserManagerRepository():
         user = await db_manager.find_one(id=token_verified.id)
 
         return user
-
+class AuthCredValidator(SQLAlchemyRepository):
+    pwd_context = Pwd_context.__pwd_context__
+    model = User
+    async def validate(self, email: str,plain_password: str):
+        async with async_session_maker() as session:
+            query_user = select(self.model).where(self.model.email == email)
+            res = await session.execute(query_user)
+            res_out = res.scalar()
+            if not self.pwd_context.verify(plain_password, res_out.password):
+                raise HTTPException(status.HTTP_403_FORBIDDEN,detail="Wrong credentials")
+            return res_out
