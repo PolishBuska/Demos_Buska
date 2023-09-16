@@ -1,14 +1,15 @@
 import secrets
 
-from fastapi import UploadFile,HTTPException,status
+from fastapi import UploadFile, HTTPException, status
 
 from app.schemas.song_file_schema import SongFileSchema
 
-from app.exceptions.File_exeception import FileException
-class FileRepository():
-    def __init__(self,file: UploadFile,path: str):
+
+class FileRepository:
+    def __init__(self, file: UploadFile, path: str):
         self.file = file
         self.path = path
+
     async def hash_filename(self):
         try:
             file_name = self.file.filename
@@ -19,9 +20,9 @@ class FileRepository():
                 token_name = secrets.token_hex(15) + "." + extension
                 generated_name = self.path + token_name
                 file_content = await self.file.read()
-                async with open(generated_name, "wb") as file:
-                    await file.write(file_content)
+                with open(generated_name, "wb") as file:
+                    file.write(file_content)
                 return SongFileSchema(link= generated_name, file_name = file_name)
-        except FileException:
-            print("Invalid format")
+        except Exception:
+            raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR,detail="something went wrong")
 

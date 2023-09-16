@@ -1,4 +1,6 @@
-from sqlalchemy import ForeignKey, MetaData
+import datetime
+
+from sqlalchemy import ForeignKey, MetaData, Column, TIMESTAMP, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -15,6 +17,9 @@ class Songs(Base):
     description: Mapped[str]
     link: Mapped[str]
     filename: Mapped[str]
+    created_at = Column(TIMESTAMP(timezone=True),
+                        nullable=False,
+                        server_default=func.now())
 
     def to_read_model(self) -> SongBase:
         return SongBase(

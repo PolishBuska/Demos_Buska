@@ -1,6 +1,8 @@
+from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 
+from app.config import settings
 from app.db import async_session_maker
 from app.models.user_model import User
 from app.schemas.token_paylaod_schema import TokenData
@@ -11,12 +13,14 @@ from app.repositories.SQLAlchemy_repository import SQLAlchemyRepository
 from app.repositories.pwd_contex_repository import Pwd_context
 
 class UserManagerRepository():
-    oauth2_scheme = None  # fill these in another layer
-    Model = None
-    SECRET_KEY = None
-    ALGORITHM = None
-    ACCESS_TOKEN_EXPIRE_MINUTES = None
+    SECRET_KEY = settings.secret_key
+    ALGORITHM = settings.algorithm
+    ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
+    Model = User
+    oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
     async def create_acces_token(self,data: dict):
+        if not isinstance(data, dict):
+            raise ValueError("Invalid input data")
         to_encode = data.copy()
         expire = datetime.utcnow() + timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES)
         to_encode.update({"exp": expire})
@@ -28,28 +32,31 @@ class UserManagerRepository():
 
     async def verify_access_token(self,token: str, credentials_exception):
         try:
-            print(token)
             payload = jwt.decode(token, self.SECRET_KEY, algorithms=[self.ALGORITHM])
-            id: str = payload.get("user_id")
-            role_id: str = payload.get("role_id")
+            id =  payload.get("user_id")
+            print(id)
+            role_id =  payload.get("user_role_id")
+            print(role_id)
             if id is None:
                 raise credentials_exception
             token_data = TokenData(id=id, role_id= role_id)
         except JWTError:
             raise credentials_exception
         return token_data
-
-
     async def get_current_user(self, token: str = Depends(oauth2_scheme)):
-
-        credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+        try:
+            credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                           detail=f'Could not validate credentials',
                                           headers={"WWW-Authenticate": "Bearer"})
-        token_verified = await self.verify_access_token(token, credentials_exception)
-        db_manager = UsersRepository()
-        user = await db_manager.find_one(id=token_verified.id)
-
+            token_verified = await self.verify_access_token(token, credentials_exception)
+            db_manager = UsersRepository()
+            user = await db_manager.find_one(id=token_verified.id)
+        except JWTError:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                          detail=f'Could not validate credentials',
+                                          headers={"WWW-Authenticate": "Bearer"})
         return user
+
 class AuthCredValidator(SQLAlchemyRepository):
     pwd_context = Pwd_context.__pwd_context__
     model = User
@@ -61,3 +68,7 @@ class AuthCredValidator(SQLAlchemyRepository):
             if not self.pwd_context.verify(plain_password, res_out.password):
                 raise HTTPException(status.HTTP_403_FORBIDDEN,detail="Wrong credentials")
             return res_out
+
+
+
+

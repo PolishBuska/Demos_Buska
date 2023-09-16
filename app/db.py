@@ -13,9 +13,15 @@ SQLALCHEMY_DATABASE_URL = f'postgresql+asyncpg://{settings.database_username}:' 
 
 
 engine = create_async_engine(SQLALCHEMY_DATABASE_URL)
-async_session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+async_session_maker = sessionmaker(
+    engine, class_=AsyncSession, expire_on_commit=False
+)
 Base = declarative_base()
 
 async def get_async_session():
     async with async_session_maker() as session:
-        yield session
+        try:
+            yield session
+        except Exception:
+            session.rollback()
+        finally: session.close()

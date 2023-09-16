@@ -12,13 +12,17 @@ class FileService():
         self.desc = desc
         self.author_id = author_id
     async def Upload_song(self):
-        file_manager = FileRepository(path=self.path, file=self.file)
-        file_data = await file_manager.hash_filename()
-        db_song_manager = SongsRepository
-        song_data = {"title":self.title,
+        try:
+            file_manager = FileRepository(path=self.path, file=self.file)
+            file_data = await file_manager.hash_filename()
+            db_song_manager = SongsRepository()
+            song_data = {"title":self.title,
                      "description":self.desc,
                      "filename":file_data.file_name,
                      "link":file_data.link}
-        result = FullDataFileSong(**song_data)
-        return await db_song_manager.add_one(data=result)
+            result = FullDataFileSong(**song_data)
+            response = await db_song_manager.add_one(data=result.model_dump())
+        except Exception as e:
+            raise e
+        return response
 

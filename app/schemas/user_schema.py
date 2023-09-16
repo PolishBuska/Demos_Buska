@@ -20,6 +20,12 @@ class UserCreate(BaseModel):
         self.nickname = bleach.clean(self.nickname)
         self.email = bleach.clean(self.email)
         self.password = bleach.clean(self.password)
+
 class UserOut(BaseModel):
+    id: int
+    nickname: Annotated[str,constr(max_length=100)]
+    model_config = ConfigDict(extra='allow', from_attributes=True)
+class User(BaseModel):
+    id: int = None
     nickname: Annotated[str,constr(max_length=100)]
     model_config = ConfigDict(extra='allow', from_attributes=True)

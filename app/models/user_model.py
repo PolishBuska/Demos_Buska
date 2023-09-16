@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, func, TIMESTAMP, Column
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -14,6 +14,9 @@ class User(Base):
     nickname: Mapped[str]
     password: Mapped[str]
     role_id: Mapped[int]
+    created_at = Column(TIMESTAMP(timezone=True),
+                        nullable=False,
+                        server_default=func.now())
     def to_read_model(self) -> UserOut:
         return UserOut(
             nickname = self.nickname,
